@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Catálogo de Productos - Ecomarket (#10)</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        /* Paleta de colores Ecomarket */
+        :root {
+            --color-primary: #4CAF50; /* Verde fresco */
+            --color-secondary: #FF9800; /* Naranja/Naranja */
+        }
+        body {
+            background-color: #f7f7f7;
+        }
+        .navbar {
+            background-color: var(--color-primary);
+        }
+        .product-card {
+            transition: transform 0.2s;
+            border: 1px solid #ddd;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,.1);
+        }
+        .add-to-cart-btn {
+            background-color: var(--color-secondary);
+            border-color: var(--color-secondary);
+            width: 40px;
+            height: 40px;
+            font-size: 1.5rem;
+            line-height: 1;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+        .add-to-cart-btn:hover {
+            background-color: #E68900;
+            border-color: #E68900;
+        }
+        .page-item.active .page-link {
+            background-color: var(--color-primary);
+            border-color: var(--color-primary);
+            color: white;
+        }
+        .cart-icon {
+            color: var(--color-secondary);
+            font-size: 1.8rem;
+            cursor: pointer;
+        }
+        /* Estilo para los botones en el Header */
+        .header-btn {
+            color: white;
+            border-color: transparent;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+        .header-btn i {
+            margin-right: 5px;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg">
+    <div class="container-fluid">
+        <a class="navbar-brand text-white fw-bold" href="#">
+            <span style="color: var(--color-secondary);">Eco</span>Market 🥦🍎
+        </a>
+        
+        <div class="d-flex align-items-center">
+            <button class="btn btn-sm header-btn me-2" onclick="openFilters()">
+                <i class="bi bi-funnel"></i> Filtro
+            </button>
+            <button class="btn btn-sm header-btn me-2" onclick="goToOffers()">
+                <i class="bi bi-tags"></i> Ofertas
+            </button>
+            <button class="btn btn-sm header-btn" onclick="goToProfile()">
+                <i class="bi bi-person-circle"></i> Perfil
+            </button>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid border-bottom p-3 bg-white">
+    <div class="row align-items-center">
+        <div class="col-8">
+             <h2 class="fw-bold mb-0 text-start">Catálogo</h2>
+        </div>
+        <div class="col-4 d-flex justify-content-end">
+            <span class="cart-icon" onclick="goToCart()">🛒 Carrito</span>
+        </div>
+    </div>
+</div>
+
+
+<div class="container mt-4">
+    <div id="product-list-container" class="row">
+        </div>
+    
+    <div id="pagination-container" class="row my-5">
+        <div class="col-12 d-flex justify-content-center">
+            <nav><ul id="pagination-menu" class="pagination">
+                </ul></nav>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Datos de simulación (15 productos, para 2 páginas de 12)
+    const allProducts = [
+        { id: 1, name: "Manzanas Rojas", desc: "Finas y jugosas, variedad Fuji, 1Kg.", price: 1200, img: "apple.png" },
+        { id: 2, name: "Lechuga Romana", desc: "Fresca, ideal para ensaladas, 1 unidad.", price: 850, img: "lettuce.png" },
+        { id: 3, name: "Naranjas", desc: "Dulces y perfectas para jugo, 1Kg", price: 1500, img: "orange.png" },
+        { id: 4, name: "Papas Chilotas", desc: "Variedad nativa, excelente sabor, 1Kg", price: 900, img: "potato.png" },
+        { id: 5, name: "Tomates Cherry", desc: "Bandeja mixta, listos para picar, 250Gr", price: 1800, img: "cherry.png" },
+        { id: 6, name: "Plátanos", desc: "Ricos en potasio, ramo de 5.", price: 1350, img: "banana.png" },
+        { id: 7, name: "Cebollas Moradas", desc: "Para ensaladas o guisos, 1Kg.", price: 700, img: "onion.png" },
+        { id: 8, name: "Brócoli", desc: "Rico en fibra, 1 unidad.", price: 1100, img: "broccoli.png" },
+        { id: 9, name: "Kiwi", desc: "Selección premium, 1Kg.", price: 2100, img: "kiwi.png" },
+        { id: 10, name: "Zanahorias", desc: "Frescas de la tierra, 1Kg.", price: 950, img: "carrot.png" },
+        { id: 11, name: "Limones", desc: "Ideal para cócteles y pescados, 1Kg.", price: 650, img: "lemon.png" },
+        { id: 12, name: "Uvas", desc: "Dulces y sin pepas, 500Gr.", price: 2500, img: "grapes.png" },
+        // Producto 13 (Para la segunda página)
+        { id: 13, name: "Pimentón Rojo", desc: "Grande y jugoso, ideal para asar, 1 unidad.", price: 1400, img: "pepper.png" },
+        { id: 14, name: "Frutillas", desc: "Dulces y en temporada, 250Gr.", price: 3000, img: "strawberry.png" },
+        { id: 15, name: "Miel Orgánica", desc: "Fuente local, 300Gr.", price: 4500, img: "honey.png" }
+    ];
+
+    const ITEMS_PER_PAGE = 12;
+    let currentPage = 1;
+
+    // Función para simular el formato de precio
+    const formatPrice = (price) => `$ ${price.toLocaleString('es-CL')}`;
+
+    /**
+     * Dibuja las tarjetas de productos según la página actual.
+     */
+    function renderProducts(page, products) {
+        const container = document.getElementById('product-list-container');
+        container.innerHTML = ''; 
+        
+        // --- Escenario de No Productos ---
+        if (products.length === 0) {
+            container.innerHTML = `
+                <div class="col-12 mt-5">
+                    <div class="alert alert-warning text-center" role="alert">
+                        <h2>No hay productos disponibles</h2>
+                        <p>Intenta ajustar tus filtros o revisa más tarde.</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('pagination-container').style.display = 'none';
+            return;
+        }
+        
+        document.getElementById('pagination-container').style.display = 'block';
+
+        const startIndex = (page - 1) * ITEMS_PER_PAGE;
+        const endIndex = startIndex + ITEMS_PER_PAGE;
+        const productsToDisplay = products.slice(startIndex, endIndex);
+
+        productsToDisplay.forEach(product => {
+            const col = document.createElement('div');
+            col.className = 'col-6 col-md-4 col-lg-3 mb-4'; 
+            col.innerHTML = `
+                <div class="card h-100 product-card">
+                    <div class="position-relative">
+                        <div style="height: 150px; background-color: #E8F5E9; display: flex; justify-content: center; align-items: center; font-size: 2rem; color: var(--color-primary);">
+                            ${product.name.substring(0, 2).toUpperCase()} [Img]
+                        </div>
+                        
+                        <button class="btn btn-sm btn-primary text-white position-absolute top-0 end-0 m-2 add-to-cart-btn" onclick="addToCart(${product.id})">
+                            +
+                        </button>
+                    </div>
+                    
+                    <div class="card-body">
+                        <h5 class="card-title text-success">${product.name}</h5>
+                        <p class="card-text text-muted small">${product.desc}</p>
+                        <p class="fs-5 fw-bold text-danger">${formatPrice(product.price)}</p>
+                    </div>
+                </div>
+            `;
+            container.appendChild(col);
+        });
+    }
+
+    /**
+     * Dibuja el menú de paginación.
+     */
+    function renderPagination(totalProducts, activePage) {
+        const paginationMenu = document.getElementById('pagination-menu');
+        paginationMenu.innerHTML = '';
+        
+        const totalPages = Math.ceil(totalProducts / ITEMS_PER_PAGE);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const listItem = document.createElement('li');
+            listItem.className = `page-item ${i === activePage ? 'active' : ''}`;
+            listItem.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+            paginationMenu.appendChild(listItem);
+        }
+
+        paginationMenu.querySelectorAll('.page-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const newPage = parseInt(e.target.getAttribute('data-page'));
+                if (newPage !== currentPage) {
+                    currentPage = newPage;
+                    renderCatalog(allProducts);
+                    window.scrollTo(0, 0); 
+                }
+            });
+        });
+    }
+
+    /**
+     * Función principal que renderiza todo el catálogo.
+     */
+    function renderCatalog(products) {
+        renderProducts(currentPage, products);
+        renderPagination(products.length, currentPage);
+    }
+
+    // --- Funciones de navegación simuladas ---
+    function addToCart(productId) {
+        console.log(`Producto ID ${productId} agregado al carrito.`);
+        alert(`Se agregó el producto ${productId} al carrito.`);
+    }
+
+    function goToCart() {
+        console.log("Navegando al Carrito de Compras (B-05)");
+        alert("Accediendo al Carrito de Compras.");
+    }
+
+    function openFilters() {
+        console.log("Abriendo Filtros (B-04)");
+        alert("Abriendo el menú de Filtros.");
+    }
+    
+    function goToOffers() {
+        console.log("Navegando a Ofertas (B-11)");
+        alert("Accediendo a la página de Ofertas.");
+    }
+
+    function goToProfile() {
+        console.log("Navegando a Perfil (B-09)");
+        alert("Accediendo a la página de Perfil.");
+    }
+
+
+    // Inicialización del Catálogo
+    document.addEventListener('DOMContentLoaded', () => {
+        renderCatalog(allProducts);
+    });
+</script>
+
+</body>
+</html>

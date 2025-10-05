@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Estado de la Transacción - Ecomarket</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        :root { --color-primary: #4CAF50; }
+        body { background-color: #f7f7f7; display: flex; justify-content: center; align-items: center; min-height: 100vh; text-align: center;}
+        .message-container { max-width: 500px; padding: 40px; }
+        .modal-body .btn-primary { width: 100px; }
+    </style>
+</head>
+<body>
+
+<div class="message-container bg-white rounded shadow-lg">
+    <div id="status-content"></div>
+</div>
+
+<div class="modal fade" id="statusModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <p id="modalMessageText" class="fw-bold fs-5"></p>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="goBackToCatalog()">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const paymentStatus = localStorage.getItem('paymentStatus');
+    const boletaStatus = localStorage.getItem('boletaSent');
+    
+    const statusContent = document.getElementById('status-content');
+    const modalText = document.getElementById('modalMessageText');
+    const statusModal = new bootstrap.Modal(document.getElementById('statusModal'));
+
+    function displayMessage() {
+        let title, message, color;
+
+        if (paymentStatus === 'success') {
+            // B-07: Pago exitoso
+            title = '¡Pago Exitoso! 🎉';
+            message = 'Tu pedido ha sido confirmado. Estamos preparando tu envío.';
+            color = 'text-success';
+            
+            // B-08: Verificar estado de la boleta (El mensaje se muestra en el modal)
+            setTimeout(checkBoletaStatus, 1000); 
+
+        } else if (paymentStatus === 'failed') {
+            // B-07: Pago no completado
+            title = 'Pago No Completado 🙁';
+            message = 'Lo sentimos, la transacción no fue completada. Por favor, revisa tus datos de pago e intenta nuevamente.';
+            color = 'text-danger';
+            
+            // El botón OK del modal redirigirá al catálogo
+            setTimeout(() => {
+                showModal('Pago no completado, intente nuevamente');
+            }, 1000); 
+            
+        } else {
+            // Error de flujo
+            title = 'Estado Desconocido';
+            message = 'Error en el flujo de la transacción.';
+            color = 'text-warning';
+        }
+
+        statusContent.innerHTML = `
+            <h2 class="${color}">${title}</h2>
+            <p class="fs-5">${message}</p>
+        `;
+    }
+
+    /**
+     * Muestra el modal con el mensaje de la boleta (B-08).
+     */
+    function checkBoletaStatus() {
+        if (boletaStatus === 'sent') {
+            showModal('La boleta fue enviada correctamente a su correo electrónico');
+        } else if (boletaStatus === 'failed') {
+            showModal('No se pudo enviar la boleta, verifique su correo');
+        }
+    }
+
+    function showModal(text) {
+        modalText.textContent = text;
+        statusModal.show();
+    }
+
+    function goBackToCatalog() {
+        // Limpiar el carrito y los estados de pago
+        localStorage.removeItem('totalPago');
+        localStorage.removeItem('paymentStatus');
+        localStorage.removeItem('boletaSent');
+        
+        // Simulación: Redirige al catálogo (o la página principal)
+        window.location.href = 'catalogo.html'; 
+    }
+
+    document.addEventListener('DOMContentLoaded', displayMessage);
+</script>
+
+</body>
+</html>

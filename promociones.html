@@ -34,14 +34,24 @@
             color: var(--color-secondary);
             font-size: 1.8rem;
             cursor: pointer;
+            position: relative;
+        }
+        .cart-count {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 0 6px;
+            font-size: 0.75rem;
+            line-height: 1.5;
+            min-width: 20px;
+            text-align: center;
         }
         .product-card {
             transition: transform 0.2s;
             border: 1px solid #ddd;
-        }
-        .product-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 8px rgba(0,0,0,.1);
         }
         .add-to-cart-btn {
             background-color: var(--color-secondary);
@@ -56,10 +66,6 @@
             align-items: center;
             z-index: 10;
         }
-        .add-to-cart-btn:hover {
-            background-color: #E68900;
-            border-color: #E68900;
-        }
         .old-price {
             text-decoration: line-through;
             color: #999;
@@ -67,12 +73,20 @@
             margin-right: 8px;
         }
         .discount-badge {
-            background-color: #e74c3c; /* Rojo para destacar el descuento */
+            background-color: #e74c3c;
             color: white;
             padding: 2px 6px;
             border-radius: 4px;
             font-weight: bold;
             font-size: 0.8rem;
+        }
+        /* Estilos del Offcanvas para que se vea bien */
+        .offcanvas-footer {
+            border-top: 1px solid #eee;
+            padding: 10px 15px;
+        }
+        .offcanvas-link {
+            font-size: 1.1rem;
         }
     </style>
 </head>
@@ -85,7 +99,7 @@
         </a>
         
         <div class="d-flex align-items-center">
-            <button class="btn btn-sm header-btn me-2" onclick="openFilters()">
+            <button class="btn btn-sm header-btn me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasFilter" aria-controls="offcanvasFilter">
                 <i class="bi bi-funnel"></i> Filtro
             </button>
             <button class="btn btn-sm header-btn me-2" onclick="goToCatalog()">
@@ -104,8 +118,64 @@
              <h2 class="fw-bold mb-0 text-start">Promociones</h2>
         </div>
         <div class="col-4 d-flex justify-content-end">
-            <span class="cart-icon" onclick="goToCart()">🛒 Carrito</span>
+            <span class="cart-icon" onclick="goToCart()">
+                🛒 Carrito
+                <span id="cart-counter" class="cart-count">0</span>
+            </span>
         </div>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasFilter" aria-labelledby="offcanvasFilterLabel">
+    <div class="offcanvas-header bg-success text-white">
+        <h5 class="offcanvas-title" id="offcanvasFilterLabel">Opciones de Filtrado</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        
+        <div id="product-filters">
+            <h6 class="mb-3 text-secondary">Búsqueda por Nombre / Descripción</h6>
+            <div class="mb-4">
+                <input type="text" class="form-control" id="searchText" placeholder="Ej: Manzana, Tomate, Orgánico...">
+            </div>
+
+            <h6 class="mb-3 text-secondary">Categoría de Producto</h6>
+            <div class="mb-5">
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="category-dropdown-btn">
+                        Seleccionar Categoría
+                    </button>
+                    <ul class="dropdown-menu w-100" aria-labelledby="category-dropdown-btn">
+                        <li><a class="dropdown-item" href="#" data-category="all">Todas</a></li>
+                        <li><a class="dropdown-item" href="#" data-category="fruits">Frutas</a></li>
+                        <li><a class="dropdown-item" href="#" data-category="vegetables">Verduras</a></li>
+                        <li><a class="dropdown-item" href="#" data-category="nuts">Frutos Secos</a></li>
+                    </ul>
+                    <input type="hidden" id="selected-category" value="all">
+                </div>
+            </div>
+            
+            <div class="d-grid mb-4">
+                <button type="button" class="btn btn-primary btn-lg" onclick="applyFilters()">OK (Aplicar Filtro)</button>
+            </div>
+        </div>
+        
+        <hr>
+
+        <h6 class="mb-3 text-secondary">Navegación Rápida</h6>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item offcanvas-link" onclick="goToCatalog()">
+                <i class="bi bi-shop me-3 text-success"></i> Catálogo
+            </li>
+            <li class="list-group-item offcanvas-link" onclick="goToProfile()">
+                <i class="bi bi-person-circle me-3 text-primary"></i> Perfil
+            </li>
+            <li class="list-group-item offcanvas-link" onclick="goToCart()">
+                <i class="bi bi-cart me-3 text-warning"></i> Carrito
+                <span id="offcanvas-cart-counter" class="badge bg-danger rounded-pill float-end">0</span>
+            </li>
+        </ul>
+
     </div>
 </div>
 
@@ -116,12 +186,15 @@
     <div id="pagination-container" class="row my-5">
         <div class="col-12 d-flex justify-content-center">
             <nav><ul id="pagination-menu" class="pagination">
-                </ul></nav>
+            </ul></nav>
         </div>
     </div>
 </div>
 
 <script>
+    // Variable global simulada para el carrito (para el contador)
+    let cartItemCount = 0; 
+
     // Datos de simulación con descuentos
     const promoProducts = [
         { id: 1, name: "Manzanas Rojas", desc: "Finas y jugosas, variedad Fuji.", price: 1200, discount: 20 },
@@ -130,41 +203,78 @@
         { id: 14, name: "Frutillas", desc: "Caja de 250gr, de la temporada.", price: 3000, discount: 5 }
     ];
 
-    // Descomentar la siguiente línea para probar el escenario de "No hay promociones"
-    // const promoProducts = [];
-
-    const ITEMS_PER_PAGE = 8; // Menos ítems por página para reflejar una sección más pequeña
+    const ITEMS_PER_PAGE = 8;
     let currentPage = 1;
 
-    // Función para simular el formato de precio
     const formatPrice = (price) => `$ ${price.toLocaleString('es-CL')}`;
 
-    /**
-     * Calcula el precio final con el descuento aplicado.
-     */
     const calculateFinalPrice = (originalPrice, discountPercentage) => {
         return Math.round(originalPrice * (1 - discountPercentage / 100));
     };
 
+    /**
+     * Actualiza el contador de carrito en el header y en el Offcanvas.
+     */
+    function updateCartCounter(count) {
+        cartItemCount = count;
+        document.getElementById('cart-counter').textContent = count;
+        document.getElementById('offcanvas-cart-counter').textContent = count;
+        // Ocultar si el carrito está vacío
+        if (count === 0) {
+            document.getElementById('cart-counter').style.display = 'none';
+            document.getElementById('offcanvas-cart-counter').style.display = 'none';
+        } else {
+            document.getElementById('cart-counter').style.display = 'inline-block';
+            document.getElementById('offcanvas-cart-counter').style.display = 'inline-block';
+        }
+    }
+
+    // LÓGICA DE FILTRADO Y RENDERIZADO (Adaptada para Promociones)
+
+    // Lógica para actualizar el botón de categoría al seleccionarla
+    document.querySelectorAll('#offcanvasFilter .dropdown-item').forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const categoryText = this.textContent;
+            
+            // Simulación de selección de categoría
+            document.getElementById('category-dropdown-btn').textContent = `Categoría: ${categoryText}`;
+        });
+    });
 
     /**
-     * Dibuja las tarjetas de productos promocionales.
+     * Simula la aplicación de filtros a la lista de promociones.
      */
+    function applyFilters() {
+        const offcanvasElement = document.getElementById('offcanvasFilter');
+        const offcanvas = bootstrap.Offcanvas.getInstance(offcanvasElement);
+        if (offcanvas) {
+            offcanvas.hide(); // Ocultar el panel
+        }
+        
+        // Simulación: Si hay texto de búsqueda, filtramos por nombre.
+        const searchText = document.getElementById('searchText').value.toLowerCase();
+        let filteredProducts = promoProducts;
+        
+        if (searchText) {
+            filteredProducts = promoProducts.filter(p => p.name.toLowerCase().includes(searchText));
+        }
+
+        currentPage = 1;
+        renderCatalog(filteredProducts);
+        
+        console.log(`Filtro aplicado: Búsqueda por "${searchText}"`);
+    }
+
     function renderProducts(page, products) {
         const container = document.getElementById('product-list-container');
-        container.innerHTML = ''; // Limpiar productos anteriores
+        container.innerHTML = ''; 
         
-        // --- Escenario de No Productos ---
         if (products.length === 0) {
-            container.innerHTML = `
-                <div class="col-12 mt-5">
-                    <div class="alert alert-warning text-center" role="alert">
-                        <h2>No hay promociones activas</h2>
-                        <p>Visita nuestro catálogo para ver todos los productos.</p>
-                    </div>
-                </div>
-            `;
-            // Ocultar paginación
+            container.innerHTML = `<div class="col-12 mt-5"><div class="alert alert-warning text-center" role="alert">
+                <h2>No hay promociones activas</h2>
+                <p>Visita nuestro catálogo para ver todos los productos.</p>
+            </div></div>`;
             document.getElementById('pagination-container').style.display = 'none';
             return;
         }
@@ -179,7 +289,6 @@
             const finalPrice = calculateFinalPrice(product.price, product.discount);
 
             const col = document.createElement('div');
-            // Grilla de 4 productos por fila en escritorio
             col.className = 'col-6 col-md-4 col-lg-3 mb-4'; 
             col.innerHTML = `
                 <div class="card h-100 product-card border-danger border-2">
@@ -212,10 +321,8 @@
         });
     }
 
-    /**
-     * Dibuja el menú de paginación. (Se mantiene la función del catálogo)
-     */
     function renderPagination(totalProducts, activePage) {
+        // Lógica de paginación... (se omite para brevedad, ya está en la versión anterior)
         const paginationMenu = document.getElementById('pagination-menu');
         paginationMenu.innerHTML = '';
         
@@ -234,39 +341,31 @@
                 const newPage = parseInt(e.target.getAttribute('data-page'));
                 if (newPage !== currentPage) {
                     currentPage = newPage;
-                    renderCatalog(promoProducts);
+                    applyFilters(); // Usar applyFilters aquí para mantener el estado
                     window.scrollTo(0, 0); 
                 }
             });
         });
     }
 
-    /**
-     * Función principal que renderiza el catálogo promocional.
-     */
     function renderCatalog(products) {
         renderProducts(currentPage, products);
         renderPagination(products.length, currentPage);
     }
 
-    // --- Funciones de navegación simuladas ---
+    // --- Funciones de navegación y acción simuladas ---
     function addToCart(productId) {
         console.log(`Producto ID ${productId} agregado al carrito.`);
+        // Simular aumento del contador
+        updateCartCounter(cartItemCount + 1); 
         alert(`Se agregó el producto ${productId} al carrito.`);
     }
 
     function goToCart() {
         console.log("Navegando al Carrito de Compras (B-05)");
-        // window.location.href = 'carrito.html';
-        alert("Accediendo al Carrito de Compras.");
+        window.location.href = 'carrito.html';
     }
 
-    function openFilters() {
-        console.log("Abriendo Filtros (B-04) - Se mantiene la opción aunque pueda no ser relevante aquí");
-        alert("Abriendo el menú de Filtros.");
-    }
-    
-    // CAMBIO: Redirige al Catálogo
     function goToCatalog() {
         console.log("Navegando al Catálogo (B-03)");
         window.location.href = 'catalogo.html'; 
@@ -274,13 +373,15 @@
 
     function goToProfile() {
         console.log("Navegando a Perfil (B-09)");
-        // window.location.href = 'perfil.html';
-        alert("Accediendo a la página de Perfil.");
+        window.location.href = 'perfil.html';
     }
 
 
     // Inicialización
     document.addEventListener('DOMContentLoaded', () => {
+        // Inicializa el contador del carrito a 0
+        updateCartCounter(0); 
+        // Carga la lista inicial de promociones
         renderCatalog(promoProducts);
     });
 </script>

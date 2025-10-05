@@ -209,7 +209,7 @@
         }
     }
 
-    // --- Lógica de Edición y Validación (Sin cambios) ---
+    // Lógica de Edición y Validación
     form.addEventListener('submit', function(event) {
         event.preventDefault();
         
@@ -257,10 +257,10 @@
         statusModal.show();
     }
 
-    // --- Funciones de navegación simuladas (Sin cambios) ---
+    // Funciones de navegación simuladas (Sin cambios)
     function goToOrders() {
         console.log("Navegando a Mis Pedidos (B-12)");
-        alert("Accediendo a Mis Pedidos.");
+        window.location.href = 'mis_pedidos.html';
     }
     function goToCatalog() {
         console.log("Navegando a Catálogo (B-03)");
@@ -268,14 +268,13 @@
     }
     function goToOffers() {
         console.log("Navegando a Ofertas (B-11)");
-        alert("Accediendo a Ofertas.");
+        window.location.href = 'promociones.html';
     }
 
     // Inicialización: Carga los datos y asegura el modo Visualización (B-09)
     document.addEventListener('DOMContentLoaded', () => {
         loadUserData();
-        // Asegurar estado inicial: Editar visible, Confirmar/Navegación visible.
-        // Dado que el HTML ya lo define, no es estrictamente necesario, pero es buena práctica.
+    
         toggleEditMode(false); 
     });
 </script>

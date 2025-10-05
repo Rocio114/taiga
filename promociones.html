@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <title>Catálogo y Filtro - Ecomarket (#11)</title>
+    <title>Promociones y Ofertas - Ecomarket (#17)</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -34,25 +34,59 @@
             color: var(--color-secondary);
             font-size: 1.8rem;
             cursor: pointer;
+            position: relative;
+        }
+        .cart-count {
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 0 6px;
+            font-size: 0.75rem;
+            line-height: 1.5;
+            min-width: 20px;
+            text-align: center;
         }
         .product-card {
             transition: transform 0.2s;
             border: 1px solid #ddd;
         }
-        /* Estilos de Paginación */
-        .page-item.active .page-link {
-            background-color: var(--color-primary);
-            border-color: var(--color-primary);
-            color: white;
+        .add-to-cart-btn {
+            background-color: var(--color-secondary);
+            border-color: var(--color-secondary);
+            width: 40px;
+            height: 40px;
+            font-size: 1.5rem;
+            line-height: 1;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
         }
-        /* Estilos para el panel de filtro (Offcanvas simulado o Panel lateral) */
-        #filter-panel {
-            position: sticky; /* Se mantiene visible al hacer scroll */
-            top: 10px;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        .old-price {
+            text-decoration: line-through;
+            color: #999;
+            font-size: 0.9rem;
+            margin-right: 8px;
+        }
+        .discount-badge {
+            background-color: #e74c3c;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        /* Estilos del Offcanvas para que se vea bien */
+        .offcanvas-footer {
+            border-top: 1px solid #eee;
+            padding: 10px 15px;
+        }
+        .offcanvas-link {
+            font-size: 1.1rem;
         }
     </style>
 </head>
@@ -68,8 +102,8 @@
             <button class="btn btn-sm header-btn me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasFilter" aria-controls="offcanvasFilter">
                 <i class="bi bi-funnel"></i> Filtro
             </button>
-            <button class="btn btn-sm header-btn me-2" onclick="goToOffers()">
-                <i class="bi bi-tags"></i> Ofertas
+            <button class="btn btn-sm header-btn me-2" onclick="goToCatalog()">
+                <i class="bi bi-shop"></i> Catálogo
             </button>
             <button class="btn btn-sm header-btn" onclick="goToProfile()">
                 <i class="bi bi-person-circle"></i> Perfil
@@ -81,21 +115,25 @@
 <div class="container-fluid border-bottom p-3 bg-white">
     <div class="row align-items-center">
         <div class="col-8">
-             <h2 class="fw-bold mb-0 text-start">Catálogo</h2>
+             <h2 class="fw-bold mb-0 text-start">Promociones</h2>
         </div>
         <div class="col-4 d-flex justify-content-end">
-            <span class="cart-icon" onclick="goToCart()">🛒 Carrito</span>
+            <span class="cart-icon" onclick="goToCart()">
+                🛒 Carrito
+                <span id="cart-counter" class="cart-count">0</span>
+            </span>
         </div>
     </div>
 </div>
 
 <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasFilter" aria-labelledby="offcanvasFilterLabel">
     <div class="offcanvas-header bg-success text-white">
-        <h5 class="offcanvas-title" id="offcanvasFilterLabel">Opciones de Filtrado (#11)</h5>
+        <h5 class="offcanvas-title" id="offcanvasFilterLabel">Opciones de Filtrado</h5>
         <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
-        <form id="filter-form">
+        
+        <div id="product-filters">
             <h6 class="mb-3 text-secondary">Búsqueda por Nombre / Descripción</h6>
             <div class="mb-4">
                 <input type="text" class="form-control" id="searchText" placeholder="Ej: Manzana, Tomate, Orgánico...">
@@ -116,11 +154,28 @@
                     <input type="hidden" id="selected-category" value="all">
                 </div>
             </div>
-
-            <div class="d-grid">
-                <button type="submit" class="btn btn-primary btn-lg">OK (Aplicar Filtro)</button>
+            
+            <div class="d-grid mb-4">
+                <button type="button" class="btn btn-primary btn-lg" onclick="applyFilters()">OK (Aplicar Filtro)</button>
             </div>
-        </form>
+        </div>
+        
+        <hr>
+
+        <h6 class="mb-3 text-secondary">Navegación Rápida</h6>
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item offcanvas-link" onclick="goToCatalog()">
+                <i class="bi bi-shop me-3 text-success"></i> Catálogo
+            </li>
+            <li class="list-group-item offcanvas-link" onclick="goToProfile()">
+                <i class="bi bi-person-circle me-3 text-primary"></i> Perfil
+            </li>
+            <li class="list-group-item offcanvas-link" onclick="goToCart()">
+                <i class="bi bi-cart me-3 text-warning"></i> Carrito
+                <span id="offcanvas-cart-counter" class="badge bg-danger rounded-pill float-end">0</span>
+            </li>
+        </ul>
+
     </div>
 </div>
 
@@ -131,91 +186,85 @@
     <div id="pagination-container" class="row my-5">
         <div class="col-12 d-flex justify-content-center">
             <nav><ul id="pagination-menu" class="pagination">
-                </ul></nav>
+            </ul></nav>
         </div>
     </div>
 </div>
 
 <script>
-    // Datos de simulación (Añadimos la categoría para el filtro)
-    const allProducts = [
-        { id: 1, name: "Manzanas Rojas", desc: "Finas y jugosas, variedad Fuji, 1Kg.", price: 1200, category: "fruits" },
-        { id: 2, name: "Lechuga", desc: "Fresca, ideal para ensaladas, 1 unidad.", price: 850, category: "vegetables" },
-        { id: 3, name: "Naranjas", desc: "Dulces y perfectas para jugo, 1Kg.", price: 1500, category: "fruits" },
-        { id: 4, name: "Papas Chilotas", desc: "Variedad nativa, excelente sabor, 1Kg.", price: 900, category: "vegetables" },
-        { id: 5, name: "Tomates Cherry", desc: "Bandeja mixta, listos para picar, 250Gr.", price: 1800, category: "vegetables" },
-        { id: 6, name: "Plátanos", desc: "Ricos en potasio, ramo de 5.", price: 1350, category: "fruits" },
-        { id: 7, name: "Cebollas Moradas", desc: "Para ensaladas o guisos, 1Kg.", price: 700, category: "vegetables" },
-        { id: 8, name: "Brócoli", desc: "Rico en fibra, 1 unidad.", price: 1100, category: "vegetables" },
-        { id: 9, name: "Kiwi", desc: "Selección premium, 1Kg.", price: 2100, category: "fruits" },
-        { id: 10, name: "Zanahorias", desc: "Frescas de la tierra, 1Kg.", price: 950, category: "vegetables" },
-        { id: 11, name: "Limones", desc: "Ideal para cócteles y pescados, 1Kg.", price: 650, category: "fruits" },
-        { id: 12, name: "Uvas", desc: "Dulces y sin pepas, 500Gr.", price: 2500, category: "fruits" },
-        { id: 13, name: "Pimentón Rojo", desc: "Grande y jugoso, ideal para asar, 1 unidad.", price: 1400, category: "vegetables" },
-        { id: 14, name: "Frutillas", desc: "Dulces y en temporada, 250Gr.", price: 3000, category: "fruits" },
-        { id: 15, name: "Nueces Peladas", desc: "Ricas en omega, 250Gr.", price: 5500, category: "nuts" }
+    // Variable global simulada para el carrito (para el contador)
+    let cartItemCount = 0; 
+
+    // Datos de simulación con descuentos
+    const promoProducts = [
+        { id: 1, name: "Manzanas Rojas", desc: "Finas y jugosas, variedad Fuji, 1Kg.", price: 1200, discount: 20 },
+        { id: 3, name: "Naranjas", desc: "Dulces y perfectas para jugo, 1Kg.", price: 1500, discount: 10 },
+        { id: 8, name: "Brócoli", desc: "Rico en fibra, 1 unidad.", price: 1100, discount: 30 },
+        { id: 14, name: "Frutillas", desc: "Dulces y en temporada, 250Gr.", price: 3000, discount: 5 }
     ];
 
-    const ITEMS_PER_PAGE = 12;
+    const ITEMS_PER_PAGE = 8;
     let currentPage = 1;
-    let currentFilter = { text: '', category: 'all' };
 
     const formatPrice = (price) => `$ ${price.toLocaleString('es-CL')}`;
 
-    // --- LÓGICA DE FILTRADO ---
-    document.getElementById('filter-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const searchText = document.getElementById('searchText').value.toLowerCase();
-        const selectedCategory = document.getElementById('selected-category').value;
-        
-        currentFilter = { text: searchText, category: selectedCategory };
-        currentPage = 1; // Reiniciar a la primera página con el nuevo filtro
+    const calculateFinalPrice = (originalPrice, discountPercentage) => {
+        return Math.round(originalPrice * (1 - discountPercentage / 100));
+    };
 
-        const offcanvasElement = document.getElementById('offcanvasFilter');
-        const offcanvas = bootstrap.Offcanvas.getInstance(offcanvasElement);
-        if (offcanvas) {
-            offcanvas.hide(); // Ocultar el panel después de aplicar el filtro
+    /**
+     * Actualiza el contador de carrito en el header y en el Offcanvas.
+     */
+    function updateCartCounter(count) {
+        cartItemCount = count;
+        document.getElementById('cart-counter').textContent = count;
+        document.getElementById('offcanvas-cart-counter').textContent = count;
+        // Ocultar si el carrito está vacío
+        if (count === 0) {
+            document.getElementById('cart-counter').style.display = 'none';
+            document.getElementById('offcanvas-cart-counter').style.display = 'none';
+        } else {
+            document.getElementById('cart-counter').style.display = 'inline-block';
+            document.getElementById('offcanvas-cart-counter').style.display = 'inline-block';
         }
-        
-        applyFilters();
-    });
+    }
+
+    // LÓGICA DE FILTRADO Y RENDERIZADO (Adaptada para Promociones)
 
     // Lógica para actualizar el botón de categoría al seleccionarla
-    document.querySelectorAll('#filter-form .dropdown-item').forEach(item => {
+    document.querySelectorAll('#offcanvasFilter .dropdown-item').forEach(item => {
         item.addEventListener('click', function(e) {
             e.preventDefault();
-            const category = this.getAttribute('data-category');
             const categoryText = this.textContent;
             
-            document.getElementById('selected-category').value = category;
+            // Simulación de selección de categoría
             document.getElementById('category-dropdown-btn').textContent = `Categoría: ${categoryText}`;
         });
     });
 
     /**
-     * Aplica el filtro guardado al listado de productos y los renderiza.
+     * Simula la aplicación de filtros a la lista de promociones.
      */
     function applyFilters() {
-        const { text, category } = currentFilter;
+        const offcanvasElement = document.getElementById('offcanvasFilter');
+        const offcanvas = bootstrap.Offcanvas.getInstance(offcanvasElement);
+        if (offcanvas) {
+            offcanvas.hide(); // Ocultar el panel
+        }
+        
+        // Simulación: Si hay texto de búsqueda, filtramos por nombre.
+        const searchText = document.getElementById('searchText').value.toLowerCase();
+        let filteredProducts = promoProducts;
+        
+        if (searchText) {
+            filteredProducts = promoProducts.filter(p => p.name.toLowerCase().includes(searchText));
+        }
 
-        const filteredProducts = allProducts.filter(product => {
-            // Filtrar por Categoría
-            const categoryMatch = (category === 'all' || product.category === category);
-            
-            // Filtrar por Texto
-            const textMatch = (
-                product.name.toLowerCase().includes(text) ||
-                product.desc.toLowerCase().includes(text)
-            );
-
-            return categoryMatch && textMatch;
-        });
-
+        currentPage = 1;
         renderCatalog(filteredProducts);
+        
+        console.log(`Filtro aplicado: Búsqueda por "${searchText}"`);
     }
-    
-    // --- LÓGICA DE RENDERIZADO (Reutilizada de B-03) ---
 
     function renderProducts(page, products) {
         const container = document.getElementById('product-list-container');
@@ -223,8 +272,8 @@
         
         if (products.length === 0) {
             container.innerHTML = `<div class="col-12 mt-5"><div class="alert alert-warning text-center" role="alert">
-                <h2>No se encontraron productos</h2>
-                <p>Ajusta los filtros o borra la búsqueda.</p>
+                <h2>No hay promociones activas</h2>
+                <p>Visita nuestro catálogo para ver todos los productos.</p>
             </div></div>`;
             document.getElementById('pagination-container').style.display = 'none';
             return;
@@ -237,21 +286,34 @@
         const productsToDisplay = products.slice(startIndex, endIndex);
 
         productsToDisplay.forEach(product => {
+            const finalPrice = calculateFinalPrice(product.price, product.discount);
+
             const col = document.createElement('div');
             col.className = 'col-6 col-md-4 col-lg-3 mb-4'; 
             col.innerHTML = `
-                <div class="card h-100 product-card">
+                <div class="card h-100 product-card border-danger border-2">
                     <div class="position-relative">
-                        <div style="height: 150px; background-color: #E8F5E9; display: flex; justify-content: center; align-items: center; font-size: 2rem; color: var(--color-primary);">
-                            ${product.name.substring(0, 2).toUpperCase()} [Img]
+                        <div style="height: 150px; background-color: #FBEFEF; display: flex; justify-content: center; align-items: center; font-size: 2rem; color: #E74C3C;">
+                            ${product.name.substring(0, 2).toUpperCase()}
                         </div>
-                        <button class="btn btn-sm btn-primary text-white position-absolute top-0 end-0 m-2 add-to-cart-btn" onclick="addToCart(${product.id})">+ </button>
+                        
+                        <span class="discount-badge position-absolute top-0 start-0 m-2">
+                            -${product.discount}%
+                        </span>
+                        
+                        <button class="btn btn-sm text-white position-absolute top-0 end-0 m-2 add-to-cart-btn" onclick="addToCart(${product.id})">
+                            +
+                        </button>
                     </div>
                     
                     <div class="card-body">
-                        <h5 class="card-title text-success">${product.name}</h5>
+                        <h5 class="card-title text-danger">${product.name}</h5>
                         <p class="card-text text-muted small">${product.desc}</p>
-                        <p class="fs-5 fw-bold text-danger">${formatPrice(product.price)}</p>
+                        
+                        <div class="d-flex align-items-baseline">
+                            <span class="old-price">${formatPrice(product.price)}</span>
+                            <span class="fs-5 fw-bold text-danger">${formatPrice(finalPrice)}</span>
+                        </div>
                     </div>
                 </div>
             `;
@@ -260,6 +322,7 @@
     }
 
     function renderPagination(totalProducts, activePage) {
+        // Lógica de paginación... (se omite para brevedad, ya está en la versión anterior)
         const paginationMenu = document.getElementById('pagination-menu');
         paginationMenu.innerHTML = '';
         
@@ -278,7 +341,7 @@
                 const newPage = parseInt(e.target.getAttribute('data-page'));
                 if (newPage !== currentPage) {
                     currentPage = newPage;
-                    applyFilters(); // Usa applyFilters en lugar de renderCatalog
+                    applyFilters(); // Usar applyFilters aquí para mantener el estado
                     window.scrollTo(0, 0); 
                 }
             });
@@ -290,34 +353,36 @@
         renderPagination(products.length, currentPage);
     }
 
-    // --- Funciones de navegación simuladas ---
+    // --- Funciones de navegación y acción simuladas ---
     function addToCart(productId) {
         console.log(`Producto ID ${productId} agregado al carrito.`);
+        // Simular aumento del contador
+        updateCartCounter(cartItemCount + 1); 
         alert(`Se agregó el producto ${productId} al carrito.`);
     }
 
     function goToCart() {
         console.log("Navegando al Carrito de Compras (B-05)");
-        // CAMBIO
         window.location.href = 'carrito.html';
     }
-    
-    function goToOffers() {
-        console.log("Navegando a Promociones (B-11)");
-        // CAMBIO
-        window.location.href = 'promociones.html';
+
+    function goToCatalog() {
+        console.log("Navegando al Catálogo (B-03)");
+        window.location.href = 'catalogo.html'; 
     }
 
     function goToProfile() {
-        console.log("Navegando a Perfil (B-09)");
-        // CAMBIO
+        console.log("Navegando al Perfil (B-09)");
         window.location.href = 'perfil.html';
     }
 
 
-    // Inicialización del Catálogo
+    // Inicialización
     document.addEventListener('DOMContentLoaded', () => {
-        applyFilters(); // Inicia con todos los productos
+        // Inicializa el contador del carrito a 0
+        updateCartCounter(0); 
+        // Carga la lista inicial de promociones
+        renderCatalog(promoProducts);
     });
 </script>
 

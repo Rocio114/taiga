@@ -34,7 +34,6 @@
         .status-pendiente { border-left-color: #0dcaf0; } /* Info */
         .status-preparacion { border-left-color: #ffc107; } /* Warning */
         .status-despacho { border-left-color: #e67e22; } /* Custom Despacho */
-        /* Note: 'entregado' orders are removed, so no need for border color here */
         
         .order-detail-list {
             list-style: none;
@@ -111,9 +110,9 @@
         'entregado': { name: 'Entregado', badge: 'bg-success', class: 'status-entregado' }
     };
 
-    // Datos simulados de pedidos activos (Estado 'entregado' se excluye de esta lista inicial)
+    // Datos simulados de pedidos activos
     let activeOrders = [
-        // Pedido Pendiente (Estado inicial, invisible al cliente)
+        // Pedido Pendiente
         { 
             id: 2001, 
             status: 'pendiente', 
@@ -124,7 +123,7 @@
             products: ['Palta (x1)', 'Pan Integral (x1)'],
             address: "Av. Siempre Viva 123" 
         },
-        // Pedido En Preparación (El administrador ya lo inició)
+        // Pedido En Preparación
         { 
             id: 2002, 
             status: 'preparacion', 
@@ -215,7 +214,7 @@
         document.getElementById('current-status').textContent = STATUS_MAP_ADMIN[currentStatus].name.toUpperCase();
         
         const select = document.getElementById('new-status-select');
-        select.innerHTML = ''; // Limpiar opciones
+        select.innerHTML = ''; 
 
         // Opciones del select (todos los estados son posibles para el admin)
         Object.keys(STATUS_MAP_ADMIN).forEach(key => {
@@ -223,12 +222,11 @@
             option.value = key;
             option.textContent = STATUS_MAP_ADMIN[key].name;
             if (key === currentStatus) {
-                option.disabled = true; // No se puede cambiar al mismo estado
+                option.disabled = true; 
             }
             select.appendChild(option);
         });
         
-        // Seleccionar el estado actual por defecto (si no está deshabilitado)
         select.value = '';
 
         editStatusModal.show();
@@ -245,12 +243,11 @@
             return;
         }
 
-        // Buscar y actualizar el pedido
         const orderIndex = activeOrders.findIndex(o => o.id === orderToEditId);
         if (orderIndex !== -1) {
             activeOrders[orderIndex].status = newStatus;
             
-            // LÓGICA CLAVE: Si el nuevo estado es 'entregado', se elimina de la lista de pedidos activos.
+            // Si el nuevo estado es 'entregado', se elimina de la lista de pedidos activos.
             if (newStatus === 'entregado') {
                 const deliveredOrder = activeOrders.splice(orderIndex, 1)[0];
                 console.log(`Pedido ${deliveredOrder.id} marcado como ENTREGADO y archivado.`);
@@ -271,7 +268,8 @@
         window.location.href = 'admin_dashboard.html';
     }
 
-    document.addEventListener('DOMContentLoaded', renderActiveOrders);
+    // Aseguramos que la función renderActiveOrders se ejecute al cargar el DOM.
+    document.addEventListener('DOMContentLoaded', renderActiveOrders); 
 </script>
 
 </body>

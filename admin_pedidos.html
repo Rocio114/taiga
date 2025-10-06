@@ -69,10 +69,11 @@
     </div>
 
     <div id="orders-list-admin" class="row">
-        <div id="no-orders-message" class="col-12 text-center text-muted fs-5 mt-5" style="display: none;">
-            No hay pedidos activos en este momento.
         </div>
-        </div>
+    
+    <div id="no-orders-message" class="col-12 text-center text-muted fs-5 mt-5">
+        No hay pedidos activos en este momento.
+    </div>
 </div>
 
 <div class="modal fade" id="editStatusModal" tabindex="-1" aria-labelledby="editStatusModalLabel" aria-hidden="true">
@@ -154,14 +155,18 @@
      */
     function renderActiveOrders() {
         const container = document.getElementById('orders-list-admin');
+        const noOrdersMessage = document.getElementById('no-orders-message');
+        
         container.innerHTML = '';
 
         if (activeOrders.length === 0) {
-            document.getElementById('no-orders-message').style.display = 'block';
+            // MOSTRAR mensaje de que no hay pedidos
+            noOrdersMessage.style.display = 'block';
             return;
         }
 
-        document.getElementById('no-orders-message').style.display = 'none';
+        // OCULTAR mensaje si hay pedidos
+        noOrdersMessage.style.display = 'none';
 
         activeOrders.forEach(order => {
             const statusInfo = STATUS_MAP_ADMIN[order.status];
